@@ -1,0 +1,69 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  ci:
+    name: Integração Contínua (Testes)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Instalar dependências
+        run: yarn install --frozen-lockfile
+
+      - name: Testes Unitários e Componentes (Vitest)
+        run: yarn test
+
+      - name: Instalar navegadores do Playwright
+        run: yarn playwright install --with-deps chromium
+
+      - name: Testes E2E (Playwright)
+        run: yarn playwright test
+
+  cd:
+    name: Entrega Contínua (Deploy)
+    needs: ci
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Instalar dependências
+        run: yarn install --frozen-lockfile
+
+      - name: Build do projeto (Vite)
+        run: yarn build
+
+      - name: Upload artifact para o Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./dist"
+
+      - name: Deploy para GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

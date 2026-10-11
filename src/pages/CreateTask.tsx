@@ -69,7 +69,7 @@ export function CreateTask() {
         Criar Nova Tarefa
       </Title>
       <Text mb="xl" c="dimmed">
-        Adicione itens consumindo a API externa e validando com Zod.
+        Adicione novas tarefas com formulário validado pelo Zod.
       </Text>
 
       <form onSubmit={form.onSubmit(handleSubmit)}>
